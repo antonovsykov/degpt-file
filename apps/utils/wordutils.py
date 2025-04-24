@@ -8,8 +8,8 @@ import concurrent.futures
 class WordUtils:
     def doc_tran_docx(self, file_path: str):
         # 不是使用默认安装需指定soffice路径
-        soffice = "D:\ProgramFile\Liberoffice\program\soffice.exe"
-        # soffice = "soffice"
+        # soffice = "D:\ProgramFile\Liberoffice\program\soffice.exe"
+        soffice = "soffice"
         # 生成目标路径（同一目录）
         doc_path = os.path.abspath(file_path)
         output_dir = os.path.dirname(file_path)
@@ -32,8 +32,8 @@ class WordUtils:
         
     def rtf_tran_docx(self, file_path: str):
         # 不是使用默认安装需指定soffice路径
-        soffice = "D:\ProgramFile\Liberoffice\program\soffice.exe"
-        # soffice = "soffice"
+        # soffice = "D:\ProgramFile\Liberoffice\program\soffice.exe"
+        soffice = "soffice"
         # 生成目标路径（同一目录）
         doc_path = os.path.abspath(file_path)
         output_dir = os.path.dirname(file_path)
