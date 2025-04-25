@@ -1,14 +1,14 @@
-from langchain_community.document_loaders import UnstructuredMarkdownLoader
+from langchain_community.document_loaders import UnstructuredXMLLoader
 
-class MdUtils:
+class XmlUtils:
         
     def text_data(self, file_path: str):
         try:
-            loader = UnstructuredMarkdownLoader(file_path)
+            loader = UnstructuredXMLLoader(file_path)
             data = loader.load()
             return data
         except Exception as e:
             print("============", e)
             return None
     
-MdUtilsInstance = MdUtils()
+XmlUtilInstance = XmlUtils()

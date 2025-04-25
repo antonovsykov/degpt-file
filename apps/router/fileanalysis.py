@@ -1,6 +1,7 @@
 from fastapi import APIRouter, File, UploadFile, Form
 from typing import Optional
 import os
+from datetime import datetime
 
 from apps.utils.fileutils import FileUtilInstance
 from apps.utils.ossutils import OssUtilInstance
@@ -11,6 +12,7 @@ from apps.utils.excelutils import ExcelUtilInstance
 from apps.utils.csvutils import SafeCSVLoader
 from apps.utils.txtutils import TxtUtilInstance
 from apps.utils.mdutils import MdUtilsInstance
+from apps.utils.xmlutils import XmlUtilInstance
 
 router = APIRouter()
 
@@ -20,6 +22,7 @@ def store_doc(
     file: UploadFile = File(...),
 ):
     result = {
+        "collection_name": "",
         "known_type": False,
         "anaylis_type": "file",
         "text": "",
@@ -28,6 +31,7 @@ def store_doc(
     try:
         unsanitized_filename = file.filename
         filename = os.path.basename(unsanitized_filename)
+        result["collection_name"] = filename
 
         # 校验文件是否支持分析
         file_ext, known_type, anaylis_type = FileUtilInstance.check_ext(filename)
@@ -42,7 +46,6 @@ def store_doc(
             pdf_path = file_path
             if file_ext in ["ppt", "pptx"]:
                 pdf_path = PptUtilInstance.tran_pdf(file_path)
-
             text_data = PdfUtilInstance.text_data(pdf_path)
             result["text"] = text_data
             image_data = PdfUtilInstance.image_data(pdf_path)
@@ -86,6 +89,10 @@ def store_doc(
 
         elif file_ext == "md":
             text_data = MdUtilsInstance.text_data(file_path)
+            result["text"] = text_data
+        
+        elif file_ext == "xml":
+            text_data = XmlUtilInstance.text_data(file_path)
             result["text"] = text_data
 
         elif file_ext in FileUtilInstance.contain_ext():

@@ -24,16 +24,16 @@ class FileUtil:
             "cpp",
             "asp",
             "aspx",
-            "config"
-            "sql"
-            "plsql"
+            "config",
+            "sql",
+            "plsql",
             "py",
             "go",
             "php",
             "vue",
             "java",
             "c",
-            "cs"
+            "cs",
             "h",
             "hsc",
             "bash",
@@ -43,13 +43,13 @@ class FileUtil:
             "r",
             "lua",
             "m",
-            "mm"
+            "mm",
             "perl",
             "rb",
             "rs",
             "db2",
             "scala",
-            "dockerfile"
+            "dockerfile",
             "yml"
         ]
         return know_program_ext
@@ -65,14 +65,16 @@ class FileUtil:
             "pptx",
             "doc",
             "docx",
-            "rtf"
+            "rtf",
             "xls",
             "xlsx",
             "csv",
             "txt",
             "log",
+            "xml",
             "ini",
-            "json"
+            "json",
+            "md"
         ]
         
         if file_ext in known_file_ext:
@@ -103,8 +105,9 @@ class FileUtil:
     
     # 删除文件
     def remove_file(self, file_path: str):
-        os.remove(file_path)
-
+        if os.path.exists(file_path):
+            os.remove(file_path)
+           
     # 删除文件夹
     def remove_folder(self, folder_path: str):
         try:
