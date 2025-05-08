@@ -8,7 +8,7 @@ echo uvicorn main:app --host "$HOST" --port "$PORT" --forwarded-allow-ips '*'
 
 # WEBUI_SECRET_KEY="$WEBUI_SECRET_KEY" exec uvicorn main:app  --host "$HOST" --port "$PORT" --forwarded-allow-ips '*'
 exec uvicorn main:app \
-    --workers 20 \
+    --workers 6 \
     --host "$HOST" \
     --port "$PORT" \
     --forwarded-allow-ips '*' \

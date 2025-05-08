@@ -14,6 +14,7 @@ RUN apt-get update && \
     wget \
     curl \
     libreoffice \
+    unrar \
     # 清理缓存以减小镜像体积
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

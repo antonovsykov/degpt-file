@@ -1,7 +1,7 @@
-from fastapi import APIRouter, File, UploadFile, Form
+from fastapi import APIRouter, HTTPException, File, UploadFile, Form
 from typing import Optional
 import os
-from datetime import datetime
+from config import DATA_DIR
 
 from apps.utils.fileutils import FileUtilInstance
 from apps.utils.ossutils import OssUtilInstance
@@ -13,8 +13,13 @@ from apps.utils.csvutils import SafeCSVLoader
 from apps.utils.txtutils import TxtUtilInstance
 from apps.utils.mdutils import MdUtilsInstance
 from apps.utils.xmlutils import XmlUtilInstance
+from apps.utils.compressutils import CompressUtilInstance
+from apps.utils.captionutils import CaptionUtilInstance
+from apps.models.caption_info import CaptionInfoReq
 
 router = APIRouter()
+
+files_count = 100
 
 @router.post("/analysis")
 def store_doc(
@@ -95,14 +100,43 @@ def store_doc(
             text_data = XmlUtilInstance.text_data(file_path)
             result["text"] = text_data
 
+        elif file_ext in ["zip", "rar"]:
+            zip_count = CompressUtilInstance.count_files(file_path, file_ext)
+            if zip_count > files_count:
+                raise HTTPException(status_code=400, detail="The number of files in the compressed file should not exceed 100")
+            CompressUtilInstance.uncompose_file(file_path, file_ext)
+
         elif file_ext in FileUtilInstance.contain_ext():
             text_data = TxtUtilInstance.text_data(file_path)
             result["text"] = text_data
 
         # 删除本地文件
         FileUtilInstance.remove_file(file_path)
-
+        return result
     except Exception as e:
-        print("====================", e)
+        FileUtilInstance.remove_file(file_path)
+        raise HTTPException(status_code=400, detail=e.detail)
+
+
+@router.get("/aichat")
+def ai_chat():
+    CompressUtilInstance.generate_aichat("")
+
+@router.post("/caption/info")
+def caption_info(captioninfo: CaptionInfoReq):
+    base_dir = None
+    if captioninfo.base64str is not None:
+        base_dir = FileUtilInstance.base64_to_image(captioninfo.base64str)
+    elif captioninfo.fileurl is not None:
+        base_dir = FileUtilInstance.download_file(captioninfo.fileurl)
+
+    if base_dir is not None:
+        languages = ['en', 'ch_sim']
+        text = CaptionUtilInstance.extract_text(base_dir, languages)
+        desc = CaptionUtilInstance.generate_scene_description(base_dir)
+        # 删除本地文件
+        FileUtilInstance.remove_file(base_dir)
+        return {"text": text, "desc": desc}
+    else:
+        return {"text": None, "desc": None}
     
-    return result

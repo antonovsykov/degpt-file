@@ -7,6 +7,8 @@ import base64
 from PIL import Image
 from io import BytesIO
 import shutil
+import urllib.request
+from urllib.parse import unquote
 
 # 定义文件上传文件夹并创建
 UPLOAD_DIR = f"{DATA_DIR}/uploads"
@@ -74,7 +76,9 @@ class FileUtil:
             "xml",
             "ini",
             "json",
-            "md"
+            "md",
+            "zip",
+            "rar"
         ]
         
         if file_ext in known_file_ext:
@@ -175,5 +179,62 @@ class FileUtil:
         except Exception as e:
             raise ValueError(f"图片合成失败: {str(e)}")
     
+    def base64_to_image(self, base64_str: str):
+        # 获取当前日期时间
+        current_date = datetime.now()
+        # 格式化为年月日字符串（示例输出：2023-10-05）
+        date_str = current_date.strftime("%Y-%m-%d")
+        file_dir = f"{UPLOAD_DIR}/{date_str}"
+        # 创建文件夹
+        os.makedirs(file_dir, exist_ok=True)
+        output_path = f"{file_dir}/{str(uuid.uuid4())}"
+        # 分离头部和数据（如果存在 MIME 前缀）
+        if base64_str.startswith("data:image/"):
+            header, data = base64_str.split(",", 1)
+            mime_type = header.split(";")[0].split(":")[1]  # 提取 MIME 类型（如 'image/png'）
+        else:
+            data = base64_str
+            mime_type = None
+        # 解码 Base64 数据
+        try:
+            img_data = base64.b64decode(data)
+        except base64.binascii.Error as e:
+            return None
+        # 自动生成扩展名（如果未指定输出路径）
+        if mime_type:
+            # 根据 MIME 类型映射扩展名
+            mime_to_ext = {
+                "image/png": "png",
+                "image/jpeg": "jpg",
+                "image/gif": "gif",
+                "image/webp": "webp",
+            }
+            ext = mime_to_ext.get(mime_type, "bin")
+            output_path = f"{output_path}.{ext}"
+        # 写入文件
+        try:
+            with open(output_path, "wb") as f:
+                f.write(img_data)
+            return output_path
+        except IOError as e:
+            return None
+    
+    def download_file(self, url: str):
+        try:
+            # 获取当前日期时间
+            current_date = datetime.now()
+            # 格式化为年月日字符串（示例输出：2023-10-05）
+            date_str = current_date.strftime("%Y-%m-%d")
+            file_dir = f"{UPLOAD_DIR}/{date_str}"
+            # 创建文件夹
+            os.makedirs(file_dir, exist_ok=True)
+            parts = url.split(".")
+            save_path = f"{file_dir}/{str(uuid.uuid4())}.{parts[-1]}"
+            # 下载并保存
+            urllib.request.urlretrieve(url, save_path)
+            return save_path
+        except Exception as e:
+            print(f"下载失败: {str(e)}")
+            return None
 
 FileUtilInstance = FileUtil()
