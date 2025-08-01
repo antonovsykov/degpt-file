@@ -1,9 +1,14 @@
 import easyocr
 from ultralytics import YOLO
+import pytesseract
+from paddleocr import PaddleOCR
 from transformers import VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer
 from transformers import pipeline
 import torch
 from PIL import Image
+import base64
+import io
+
 
 # 加载预训练模型和工具
 model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
@@ -19,17 +24,43 @@ num_beams = 4    # 控制生成多样性
 # 加载图像描述生成模型（BLIP）
 image_captioner = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
 
-
-
 class CaptionUtils:
-    # 加载图片中得文本
+
+    # 加载图片中得文本-easyocr
     def extract_text(self, image_path, languages):
         try:
             reader = easyocr.Reader(languages)
             # 文本识别
-            results = reader.readtext(image_path)
-            extracted_text = [text[1] for text in results]
-            return extracted_text
+            result_easy = reader.readtext(image_path, beamWidth=10, text_threshold=0.5)
+            text_easy = " ".join([res[1] for res in result_easy])
+            return text_easy
+        except Exception as e:
+            print(f'发生错误: {e}')
+            return None
+        
+    # 加载图片中得文本-pytesseract
+    def extract_text2(self, image_path, languages):
+        try:
+            pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+            # 加载图像
+            image = Image.open(image_path)
+            # 文本识别
+            text = pytesseract.image_to_string(image, lang=languages, config='--psm 6')
+            return text
+        except Exception as e:
+            print(f'发生错误: {e}')
+            return None
+        
+    # 加载图片中得文本-paddleocr
+    def extract_text3(self, image_path, language):
+        try:
+            # PaddleOCR（中文+英文）
+            ocr_paddle = PaddleOCR(use_angle_cls=True, lang=language, use_gpu=True)
+            # 加载图像
+            result_paddle = ocr_paddle.ocr(image_path, cls=True)
+            # 处理PaddleOCR 2.10.0的双层列表结构
+            text_paddle = " ".join([line[1][0] for line in result_paddle[0]])
+            return text_paddle
         except Exception as e:
             print(f'发生错误: {e}')
             return None

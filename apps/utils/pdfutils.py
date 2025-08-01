@@ -14,7 +14,7 @@ class PdfUtils:
             print("============", e)
             return None
         
-    def image_data(self, file_path: str, dpi=20):
+    def image_data(self, file_path: str, dpi=72):
         base64_images = []
         try:
             doc = fitz.open(file_path)
